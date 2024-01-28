@@ -8,15 +8,23 @@
     let editingRatingMovieId = null;
     const dispatch = createEventDispatcher();
 
+    // Fetch Ratings
     onMount(async () => {
-        // Fetch the individual ratings
+        // This code runs after the component is mounted to the DOM
+
+        // Fetching individual ratings
         const ratingsResponse = await fetch('http://localhost:1337/ratings');
         if (ratingsResponse.ok) {
             const ratingsData = await ratingsResponse.json();
+            // Updating the 'movies' array with the fetched ratings
             movies = movies.map(movie => ({
                 ...movie,
+                // Adding a 'rating' property to each movie
+                // It searches for a corresponding rating in the fetched data
+                // If no rating is found, it defaults to 'null'
                 rating: ratingsData.find(r => r.movie_id === movie.id)?.rating || null
             }));
+            // The modification of 'movies' here triggers Svelte's reactivity
         }
     });
 
@@ -59,10 +67,11 @@
         .then(response => response.text())
         .then(result => {
             console.log(result);
+            // Updates movies array with ratings, triggering UI refresh
             const movie = movies.find(m => m.id === movieId);
             if (movie) {
                 movie.rating = rating;
-                movies = [...movies]; // Trigger reactivity
+                movies = [...movies];
             }
         })
         .catch(error => console.error('Error:', error));
@@ -79,10 +88,11 @@
         .then(response => response.text())
         .then(result => {
             console.log(result);
+            // Updates movies array with ratings, triggering UI refresh
             const movie = movies.find(m => m.id === movieId);
             if (movie) {
                 movie.rating = null;
-                movies = [...movies]; // Trigger reactivity
+                movies = [...movies];
             }
         })
         .catch(error => console.error('Error:', error));
@@ -90,9 +100,7 @@
 
     function handleWatchedChange(movieId, isInWatched) {
         handleWatched(movieId, isInWatched);
-        if (!isInWatched) {
-            removeRating(movieId); // Remove rating when removed from watched
-        }
+        // The CASCADE deletion in the database will automatically delete the rating for the movie as well.
     }
 
     function formatRating(rating) {
